@@ -8,8 +8,7 @@ from libpysal import io
 import numpy as np
 import unittest
 import pandas
-from types import SimpleNamespace
-from ..gwr import GWR, MGWR, MGWRResults
+from ..gwr import GWR, MGWR
 from ..sel_bw import Sel_BW
 from ..diagnostics import get_AICc, get_AIC, get_BIC, get_CV
 from spglm.family import Gaussian, Poisson, Binomial
@@ -1064,7 +1063,6 @@ class TestGWRBinomial(unittest.TestCase):
         se_strm = self.BS_F.by_col(" se_DistStrm")
         t_strm = self.BS_F.by_col(" t_DistStrm")
         yhat = self.BS_F.by_col(" yhat")
-        pdev = np.array(self.BS_F.by_col(" localpdev")).reshape((-1, 1))
 
         model = GWR(
             self.coords,
@@ -1135,7 +1133,6 @@ class TestGWRBinomial(unittest.TestCase):
         se_strm = self.BS_NN.by_col(" se_DistStrm")
         t_strm = self.BS_NN.by_col(" t_DistStrm")
         yhat = self.BS_NN.by_col(" yhat")
-        pdev = self.BS_NN.by_col(" localpdev")
 
         model = GWR(
             self.coords,
@@ -1209,7 +1206,6 @@ class TestGWRBinomial(unittest.TestCase):
         se_strm = self.GS_F.by_col(" se_DistStrm")
         t_strm = self.GS_F.by_col(" t_DistStrm")
         yhat = self.GS_F.by_col(" yhat")
-        pdev = self.GS_F.by_col(" localpdev")
 
         model = GWR(
             self.coords,
@@ -1280,7 +1276,6 @@ class TestGWRBinomial(unittest.TestCase):
         se_strm = self.GS_NN.by_col(" se_DistStrm")
         t_strm = self.GS_NN.by_col(" t_DistStrm")
         yhat = self.GS_NN.by_col(" yhat")
-        pdev = self.GS_NN.by_col(" localpdev")
 
         model = GWR(
             self.coords,

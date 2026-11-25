@@ -5,7 +5,6 @@ Diagnostics for estimated gwr models
 __author__ = "Taylor Oshan tayoshan@gmail.com"
 
 import numpy as np
-from scipy import linalg
 from spglm.family import Gaussian, Poisson, Binomial
 
 

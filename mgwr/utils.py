@@ -130,7 +130,6 @@ def compare_surfaces(
              path to save the figure. Default is None. Not to save figure.
     """
     import matplotlib.pyplot as plt
-    import geopandas as gp
 
     fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(45, 20))
     ax0 = axes[0]

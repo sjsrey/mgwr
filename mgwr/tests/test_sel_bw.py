@@ -7,7 +7,7 @@ import numpy as np
 from libpysal import io
 import libpysal as ps
 import unittest
-from spglm.family import Gaussian, Poisson, Binomial
+from spglm.family import Poisson
 from ..sel_bw import Sel_BW
 from numpy.testing import assert_allclose
 

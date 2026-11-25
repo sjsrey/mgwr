@@ -1,5 +1,5 @@
 import numpy as np
-from spglm.family import Gaussian, Binomial, Poisson
+from spglm.family import Gaussian
 from spglm.glm import GLM
 from .diagnostics import get_AICc
 

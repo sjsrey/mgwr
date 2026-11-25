@@ -4,13 +4,12 @@
 
 __author__ = "Taylor Oshan Tayoshan@gmail.com"
 
-import spreg.user_output as USER
+import spreg.user_output as user_output
 import warnings
 import numpy as np
-from scipy.spatial.distance import pdist
 from scipy.optimize import minimize_scalar
-from spglm.family import Gaussian, Poisson, Binomial
-from .kernels import Kernel, local_cdist
+from spglm.family import Gaussian
+from .kernels import local_cdist
 from .gwr import GWR
 from .search import golden_section, equal_interval, multi_bw
 from .diagnostics import get_AICc, get_AIC, get_BIC, get_CV
@@ -356,21 +355,22 @@ class Sel_BW(object):
         return self.bw[0]
 
     def _bw(self):
-        gwr_func = lambda bw: getDiag[self.criterion](
-            GWR(
-                self.coords,
-                self.y,
-                self.X_loc,
-                bw,
-                family=self.family,
-                kernel=self.kernel,
-                fixed=self.fixed,
-                constant=self.constant,
-                offset=self.offset,
-                spherical=self.spherical,
-                n_jobs=self.n_jobs,
-            ).fit(lite=True)
-        )
+        def gwr_func(bw):
+            return getDiag[self.criterion](
+                GWR(
+                    self.coords,
+                    self.y,
+                    self.X_loc,
+                    bw,
+                    family=self.family,
+                    kernel=self.kernel,
+                    fixed=self.fixed,
+                    constant=self.constant,
+                    offset=self.offset,
+                    spherical=self.spherical,
+                    n_jobs=self.n_jobs,
+                ).fit(lite=True)
+            )
 
         self._optimized_function = gwr_func
 
@@ -419,7 +419,7 @@ class Sel_BW(object):
     def _mbw(self):
         y = self.y
         if self.constant:
-            X, keep_x, warn = USER.check_constant(self.X_loc)
+            X, keep_x, warn = user_output.check_constant(self.X_loc)
         else:
             X = self.X_loc
         n, k = X.shape
@@ -427,12 +427,9 @@ class Sel_BW(object):
         offset = self.offset
         kernel = self.kernel
         fixed = self.fixed
-        spherical = self.spherical
         coords = self.coords
         search_method = self.search_method
         criterion = self.criterion
-        bw_min = self.bw_min
-        bw_max = self.bw_max
         multi_bw_min = self.multi_bw_min
         multi_bw_max = self.multi_bw_max
         interval = self.interval

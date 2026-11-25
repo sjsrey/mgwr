@@ -419,6 +419,12 @@ class TestGWRGaussian(unittest.TestCase):
             atol=1e-07,
         )
 
+    def test_Prediction_partial_exog_raises(self):
+        model = GWR(self.coords, self.y, self.X, 93, fixed=False, kernel="bisquare")
+        coords = np.array(self.coords)
+        with self.assertRaises(ValueError):
+            model.predict(coords[-10:], self.X[-10:], exog_scale=1.0)
+
     def test_Prediction(self):
         coords = np.array(self.coords)
         index = np.arange(len(self.y))

@@ -440,8 +440,8 @@ class GWR(GLM):
             self.exog_scale = exog_scale
             self.exog_resid = exog_resid
         else:
-            raise InputError(
-                "exog_scale and exog_resid must both either beNone or specified"
+            raise ValueError(
+                "exog_scale and exog_resid must both either be None or specified"
             )
         self.points = points
         if self.constant:

@@ -7,9 +7,7 @@ import os
 from typing import Optional
 import warnings
 import numpy as np
-import numpy.linalg as la
 from scipy.stats import t
-from scipy.special import factorial
 from itertools import combinations as combo
 from spglm.family import Gaussian, Binomial, Poisson
 from spglm.glm import GLM, GLMResults
@@ -17,8 +15,8 @@ from spglm.iwls import iwls, _compute_betas_gwr
 from spglm.utils import cache_readonly
 from joblib import Parallel, delayed
 from .diagnostics import get_AIC, get_AICc, get_BIC, corr
-from .kernels import *
-from .summary import *
+from .kernels import Kernel
+from .summary import summaryGLM, summaryGWR, summaryMGWR, summaryModel
 
 
 class GWR(GLM):
@@ -903,9 +901,6 @@ class GWRResults(GLMResults):
         if isinstance(self.family, Gaussian):
             raise NotImplementedError("deviance not currently used for Gaussian")
         else:
-            off = self.offset.reshape((-1, 1)).T
-            y = self.y
-            ybar = self.y_bar
             global_dev_res = (self.family.resid_dev(self.y, self.mu)) ** 2
             dev_res = np.repeat(global_dev_res.flatten(), self.n)
             dev_res = dev_res.reshape((self.n, self.n))
@@ -996,7 +991,6 @@ class GWRResults(GLMResults):
                           where absolute tvalues less than the absolute value of
                           alpha have been set to 0.
         """
-        n = self.n
         if critical_t is not None:
             critical = critical_t
         else:
@@ -1262,13 +1256,6 @@ class GWRResults(GLMResults):
 
         fit_params = temp_gwr.fit_params
         search_params = temp_sel.search_params
-        kernel = temp_gwr.kernel
-        fixed = temp_gwr.fixed
-
-        if self.model.constant:
-            X = self.X[:, 1:]
-        else:
-            X = self.X
 
         init_sd = np.std(self.params, axis=0)
         SDs = []
@@ -1277,10 +1264,10 @@ class GWRResults(GLMResults):
             from tqdm.auto import tqdm  # if they have it, let users have a progress bar
         except ImportError:
 
-            def tqdm(x, desc=""):  # otherwise, just passthrough the range
+            def tqdm(x, **_kwargs):  # otherwise, just passthrough the range
                 return x
 
-        for x in tqdm(range(n_iters), desc="Testing"):
+        for _ in tqdm(range(n_iters), desc="Testing"):
             temp_coords = np.random.permutation(self.model.coords)
             temp_sel.coords = temp_coords
             temp_bw = temp_sel.search(**search_params)
@@ -1614,7 +1601,6 @@ class MGWR(GWR):
         self.offset = None
         self.exog_resid = None
         self.exog_scale = None
-        self_fit_params = None
         self.name_x = name_x
         self.n_jobs = n_jobs
 
@@ -1695,7 +1681,7 @@ class MGWR(GWR):
             from tqdm.autonotebook import tqdm  # progress bar
         except ImportError:
 
-            def tqdm(x, total=0, desc=""):  # otherwise, just passthrough the range
+            def tqdm(x, **_kwargs):  # otherwise, just passthrough the range
                 return x
 
         if pool:
@@ -1746,7 +1732,7 @@ class MGWR(GWR):
 
         P = []
         Q = []
-        I = np.eye(self.n)
+        identity = np.eye(self.n)
         for j1 in range(self.k):
             Aj = (
                 GWR(
@@ -1764,7 +1750,7 @@ class MGWR(GWR):
             Pj = []
             for j2 in range(self.k):
                 if j1 == j2:
-                    Pj.append(I)
+                    Pj.append(identity)
                 else:
                     Pj.append(Aj)
             P.append(Pj)
@@ -2061,7 +2047,6 @@ class MGWRResults(GWRResults):
                           where absolute tvalues less than the absolute value of
                           alpha have been set to 0.
         """
-        n = self.n
         if critical_t is not None:
             critical = np.array(critical_t)
         elif alpha is not None and critical_t is None:
@@ -2218,11 +2203,6 @@ class MGWRResults(GWRResults):
 
         search_params = temp_sel.search_params
 
-        if self.model.constant:
-            X = self.X[:, 1:]
-        else:
-            X = self.X
-
         init_sd = np.std(self.params, axis=0)
         SDs = []
 
@@ -2230,10 +2210,10 @@ class MGWRResults(GWRResults):
             from tqdm.auto import tqdm  # if they have it, let users have a progress bar
         except ImportError:
 
-            def tqdm(x, desc=""):  # otherwise, just passthrough the range
+            def tqdm(x, **_kwargs):  # otherwise, just passthrough the range
                 return x
 
-        for x in tqdm(range(n_iters), desc="Testing"):
+        for _ in tqdm(range(n_iters), desc="Testing"):
             temp_coords = np.random.permutation(self.model.coords)
             temp_sel.coords = temp_coords
             temp_sel.search(**search_params)

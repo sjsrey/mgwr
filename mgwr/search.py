@@ -55,18 +55,18 @@ def golden_section(
     diff = 1.0e9
     iters = 0
     output = []
-    dict = {}
+    cache = {}
     while np.abs(diff) > tol and iters < max_iter and a != np.inf:
         iters += 1
         if int_score:
             b = np.round(b)
             d = np.round(d)
 
-        if b in dict:
-            score_b = dict[b]
+        if b in cache:
+            score_b = cache[b]
         else:
             score_b = function(b)
-            dict[b] = score_b
+            cache[b] = score_b
             if verbose:
                 print(
                     "Bandwidth: ",
@@ -75,11 +75,11 @@ def golden_section(
                     "{0:.2f}".format(score_b[0]),
                 )
 
-        if d in dict:
-            score_d = dict[d]
+        if d in cache:
+            score_d = cache[d]
         else:
             score_d = function(d)
-            dict[d] = score_d
+            cache[d] = score_d
             if verbose:
                 print(
                     "Bandwidth: ",
@@ -109,7 +109,6 @@ def golden_section(
             output.append((opt_val, opt_score))
 
         diff = score_b - score_d
-        score = opt_score
 
     if a == np.inf or bw_max == np.inf:
         score_ols = function(np.inf)
@@ -244,7 +243,7 @@ def multi_bw(
         from tqdm.auto import tqdm  # if they have it, let users have a progress bar
     except ImportError:
 
-        def tqdm(x, desc=""):  # otherwise, just passthrough the range
+        def tqdm(x, **_kwargs):  # otherwise, just passthrough the range
             return x
 
     for iters in tqdm(range(1, max_iter + 1), desc="Backfitting"):

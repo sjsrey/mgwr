@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 #
 # This file is execfile()d with the current directory set to its
@@ -14,7 +13,9 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-import sys, os
+import os
+import sys
+
 import sphinx_bootstrap_theme
 
 sys.path.insert(0, os.path.abspath("../../"))
@@ -56,7 +57,7 @@ master_doc = "index"
 
 # General information about the project.
 project = "mgwr"  # string of your project name, for example, 'giddy'
-copyright = "2018, pysal developers"
+copyright = "2018, pysal developers"  # noqa: A001
 author = "pysal developers"
 
 # The version info for the project you're documenting, acts as replacement for
@@ -95,7 +96,8 @@ html_theme = "bootstrap"
 html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
 html_title = f"{project!s} v{version!s} Manual"
 
-# (Optional) Logo of your package. Should be small enough to fit the navbar (ideally 24x24).
+# (Optional) Logo of your package. Should be small enough to fit the navbar (ideally
+# 24x24).
 # Path should be relative to the ``_static`` files directory.
 # html_logo = "_static/images/package_logo.jpg"
 

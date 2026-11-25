@@ -46,7 +46,7 @@ def shift_colormap(cmap, start=0, midpoint=0.5, stop=1.0, name="shiftedcmap"):
         ]
     )
 
-    for ri, si in zip(reg_index, shift_index):
+    for ri, si in zip(reg_index, shift_index, strict=False):
         r, g, b, a = cmap(ri)
 
         cdict["red"].append((si, r, r))
@@ -63,14 +63,16 @@ def shift_colormap(cmap, start=0, midpoint=0.5, stop=1.0, name="shiftedcmap"):
 @requires("matplotlib")
 def truncate_colormap(cmap, minval=0.0, maxval=1.0, n=100):
     """
-    Function to truncate a colormap by selecting a subset of the original colormap's values
+    Function to truncate a colormap by selecting a subset of the original colormap's
+    values
 
     Parameters
     ----------
     cmap : Mmatplotlib colormap to be altered
     minval : Minimum value of the original colormap to include in the truncated colormap
     maxval : Maximum value of the original colormap to include in the truncated colormap
-    n : Number of intervals between the min and max values for the gradient of the truncated colormap
+    n : Number of intervals between the min and max values for the gradient of the
+    truncated colormap
 
     Returns
     -------
@@ -80,7 +82,7 @@ def truncate_colormap(cmap, minval=0.0, maxval=1.0, n=100):
     import matplotlib as mpl
 
     new_cmap = mpl.colors.LinearSegmentedColormap.from_list(
-        "trunc({n},{a:.2f},{b:.2f})".format(n=cmap.name, a=minval, b=maxval),
+        f"trunc({cmap.name},{minval:.2f},{maxval:.2f})",
         cmap(np.linspace(minval, maxval, n)),
     )
     return new_cmap
@@ -154,13 +156,15 @@ def compare_surfaces(
     # If all values are positive use the positive half of the colormap
     elif (vmin > 0) & (vmax > 0):
         cmap = truncate_colormap(cmap, 0.5, 1.0)
-    # Otherwise, there are positive and negative values so the colormap so zero is the midpoint
+    # Otherwise, there are positive and negative values so the colormap so zero is the
+    # midpoint
     else:
         cmap = shift_colormap(
             cmap, start=0.0, midpoint=1 - vmax / (vmax + abs(vmin)), stop=1.0
         )
 
-    # Create scalar mappable for colorbar and stretch colormap across range of data values
+    # Create scalar mappable for colorbar and stretch colormap across range of data
+    # values
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=plt.Normalize(vmin=vmin, vmax=vmax))
 
     # Plot GWR parameters

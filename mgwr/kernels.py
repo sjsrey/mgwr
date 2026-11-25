@@ -3,6 +3,7 @@
 __author__ = "Taylor Oshan tayoshan@gmail.com"
 
 import numpy as np
+
 # adaptive specifications should be parameterized with nn-1 to match original gwr
 # implementation. That is, pysal counts self neighbors with knn automatically.
 
@@ -18,7 +19,8 @@ except ImportError:
 @njit
 def local_cdist(coords_i, coords, spherical):
     """
-    Compute Haversine (spherical=True) or Euclidean (spherical=False) distance for a local kernel.
+    Compute Haversine (spherical=True) or Euclidean (spherical=False) distance for a
+    local kernel.
     """
     if spherical:
         dLat = np.radians(coords[:, 1] - coords_i[1])
@@ -33,7 +35,7 @@ def local_cdist(coords_i, coords, spherical):
         return np.sqrt(np.sum((coords_i - coords) ** 2, axis=1))
 
 
-class Kernel(object):
+class Kernel:
     """
     GWR kernel function specifications.
 
@@ -47,7 +49,7 @@ class Kernel(object):
         fixed=True,
         function="triangular",
         eps=1.0000001,
-        ids=None,
+        ids=None,  # noqa: ARG002 -- unused, kept for API compatibility
         points=None,
         spherical=False,
     ):

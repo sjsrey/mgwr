@@ -4,26 +4,29 @@
 
 __author__ = "Taylor Oshan Tayoshan@gmail.com"
 
-import spreg.user_output as user_output
 import warnings
+
 import numpy as np
+import spreg.user_output as user_output
 from scipy.optimize import minimize_scalar
 from spglm.family import Gaussian
-from .kernels import local_cdist
+
+from .diagnostics import get_AIC, get_AICc, get_BIC, get_CV
 from .gwr import GWR
-from .search import golden_section, equal_interval, multi_bw
-from .diagnostics import get_AICc, get_AIC, get_BIC, get_CV
+from .kernels import local_cdist
+from .search import equal_interval, golden_section, multi_bw
 
 getDiag = {"AICc": get_AICc, "AIC": get_AIC, "BIC": get_BIC, "CV": get_CV}
 
 
-class Sel_BW(object):
+class Sel_BW:
     """
     Select bandwidth for kernel
 
     Methods: p211 - p213, bandwidth selection
 
-    :cite:`fotheringham_geographically_2002`: Fotheringham, A. S., Brunsdon, C., & Charlton, M. (2002).
+    :cite:`fotheringham_geographically_2002`: Fotheringham, A. S., Brunsdon, C., &
+    Charlton, M. (2002).
     Geographically weighted regression: the analysis of spatially varying relationships.
 
     Parameters
@@ -59,7 +62,8 @@ class Sel_BW(object):
                      True for shperical coordinates (long-lat),
                      False for projected coordinates (defalut).
     n_jobs         : integer
-                     The number of jobs (default -1) to run in parallel. -1 means using all processors.
+                     The number of jobs (default -1) to run in parallel. -1 means using
+                     all processors.
 
     Attributes
     ----------
@@ -168,7 +172,9 @@ class Sel_BW(object):
     Interval AICc - fixed bisquare
 
     >>> sel = Sel_BW(coords, y, X, fixed=True)
-    >>> bw = sel.search(search_method='interval', bw_min=211001.0, bw_max=211035.0, interval=2)
+    >>> bw = sel.search(
+    ...     search_method='interval', bw_min=211001.0, bw_max=211035.0, interval=2
+    ... )
     >>> print(bw)
     211025.0
 
@@ -180,7 +186,7 @@ class Sel_BW(object):
         y,
         X_loc,
         X_glob=None,
-        family=Gaussian(),
+        family=Gaussian(),  # noqa: B008
         offset=None,
         kernel="bisquare",
         fixed=False,
@@ -275,7 +281,8 @@ class Sel_BW(object):
                          bws_same_times (default 5) in backfitting, then use the
                          current set of bandwidths as final bandwidths.
         verbose        : Boolean
-                         If true, bandwidth searching history is printed out; default is False.
+                         If true, bandwidth searching history is printed out; default is
+                         False.
         pool          : None, deprecated and not used.
 
         Returns
@@ -320,7 +327,8 @@ class Sel_BW(object):
 
         if pool:
             warnings.warn(
-                "The pool parameter is no longer used and will have no effect; parallelization is default and implemented using joblib instead.",
+                "The pool parameter is no longer used and will have no effect; "
+                "parallelization is default and implemented using joblib instead.",
                 RuntimeWarning,
                 stacklevel=2,
             )
@@ -405,7 +413,8 @@ class Sel_BW(object):
             )
             if self.bw_min == self.bw_max:
                 raise Exception(
-                    "Maximum bandwidth and minimum bandwidth must be distinct for scipy optimizer."
+                    "Maximum bandwidth and minimum bandwidth must be distinct "
+                    "for scipy optimizer."
                 )
             self._optimize_result = minimize_scalar(
                 gwr_func, bounds=(self.bw_min, self.bw_max), method="bounded"

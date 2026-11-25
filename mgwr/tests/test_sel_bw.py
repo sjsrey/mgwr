@@ -3,22 +3,24 @@ GWR is tested against results from GWR4
 """
 
 import os
+import unittest
+
+import libpysal as ps
 import numpy as np
 from libpysal import io
-import libpysal as ps
-import unittest
-from spglm.family import Poisson
-from ..sel_bw import Sel_BW
 from numpy.testing import assert_allclose
+from spglm.family import Poisson
+
+from ..sel_bw import Sel_BW
 
 
 class TestSelBWGaussian(unittest.TestCase):
     def setUp(self):
         data_path = ps.examples.get_path("GData_utm.csv")
         data = io.open(data_path)
-        self.coords = list(zip(data.by_col("X"), data.by_col("Y")))
+        self.coords = list(zip(data.by_col("X"), data.by_col("Y"), strict=False))
         self.coords_longlat = list(
-            zip(data.by_col("Longitud"), data.by_col("Latitude"))
+            zip(data.by_col("Longitud"), data.by_col("Latitude"), strict=False)
         )
         self.y = np.array(data.by_col("PctBach")).reshape((-1, 1))
         rural = np.array(data.by_col("PctRural")).reshape((-1, 1))
@@ -118,9 +120,9 @@ class TestSelBWGaussian(unittest.TestCase):
 
     def test_golden_fixed_AICc_inf_bw_max(self):
         # bw_max=float("inf") must behave like np.inf, not raise NameError
-        bw_np = Sel_BW(self.coords, self.y, self.X, kernel="bisquare", fixed=True).search(
-            criterion="AICc", bw_max=np.inf
-        )
+        bw_np = Sel_BW(
+            self.coords, self.y, self.X, kernel="bisquare", fixed=True
+        ).search(criterion="AICc", bw_max=np.inf)
         bw_float = Sel_BW(
             self.coords, self.y, self.X, kernel="bisquare", fixed=True
         ).search(criterion="AICc", bw_max=float("inf"))
@@ -245,7 +247,9 @@ class TestGWRSelBWPoisson(unittest.TestCase):
     def setUp(self):
         data_path = os.path.join(os.path.dirname(__file__), "tokyo/Tokyomortality.csv")
         data = io.open(data_path, mode="r")
-        self.coords = list(zip(data.by_col("X_CENTROID"), data.by_col("Y_CENTROID")))
+        self.coords = list(
+            zip(data.by_col("X_CENTROID"), data.by_col("Y_CENTROID"), strict=False)
+        )
         self.y = np.array(data.by_col("db2564")).reshape((-1, 1))
         self.off = np.array(data.by_col("eb2564")).reshape((-1, 1))
         OCC = np.array(data.by_col("OCC_TEC")).reshape((-1, 1))

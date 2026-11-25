@@ -3,22 +3,24 @@ GWR is tested against results from GWR4
 """
 
 import os
-import libpysal as ps
-from libpysal import io
-import numpy as np
 import unittest
+
+import libpysal as ps
+import numpy as np
 import pandas
+from libpysal import io
+from spglm.family import Binomial, Gaussian, Poisson
+
+from ..diagnostics import get_AIC, get_AICc, get_BIC, get_CV
 from ..gwr import GWR, MGWR
 from ..sel_bw import Sel_BW
-from ..diagnostics import get_AICc, get_AIC, get_BIC, get_CV
-from spglm.family import Gaussian, Poisson, Binomial
 
 
 class TestGWRGaussianParallel(unittest.TestCase):
     def setUp(self):
         data_path = ps.examples.get_path("GData_utm.csv")
         data = io.open(data_path)
-        self.coords = list(zip(data.by_col("X"), data.by_col("Y")))
+        self.coords = list(zip(data.by_col("X"), data.by_col("Y"), strict=False))
         self.y = np.array(data.by_col("PctBach")).reshape((-1, 1))
         rural = np.array(data.by_col("PctRural")).reshape((-1, 1))
         pov = np.array(data.by_col("PctPov")).reshape((-1, 1))
@@ -516,6 +518,7 @@ class TestGWRGaussianParallel(unittest.TestCase):
             zip(
                 self.BS_NN_longlat.by_col(" x_coord"),
                 self.BS_NN_longlat.by_col(" y_coord"),
+                strict=False,
             )
         )
         est_Int = self.BS_NN_longlat.by_col(" est_Intercept")
@@ -585,7 +588,9 @@ class TestGWRPoissonParallel(unittest.TestCase):
     def setUp(self):
         data_path = os.path.join(os.path.dirname(__file__), "tokyo/Tokyomortality.csv")
         data = io.open(data_path, mode="r")
-        self.coords = list(zip(data.by_col("X_CENTROID"), data.by_col("Y_CENTROID")))
+        self.coords = list(
+            zip(data.by_col("X_CENTROID"), data.by_col("Y_CENTROID"), strict=False)
+        )
         self.y = np.array(data.by_col("db2564")).reshape((-1, 1))
         self.off = np.array(data.by_col("eb2564")).reshape((-1, 1))
         OCC = np.array(data.by_col("OCC_TEC")).reshape((-1, 1))
@@ -914,7 +919,7 @@ class TestGWRBinomialParallel(unittest.TestCase):
     def setUp(self):
         data_path = os.path.join(os.path.dirname(__file__), "clearwater/landslides.csv")
         data = io.open(data_path)
-        self.coords = list(zip(data.by_col("X"), data.by_col("Y")))
+        self.coords = list(zip(data.by_col("X"), data.by_col("Y"), strict=False))
         self.y = np.array(data.by_col("Landslid")).reshape((-1, 1))
         ELEV = np.array(data.by_col("Elev")).reshape((-1, 1))
         SLOPE = np.array(data.by_col("Slope")).reshape((-1, 1))

@@ -3,8 +3,10 @@ Tests for the custom GWR kernel class
 """
 
 import unittest
-import numpy as np
+
 import libpysal
+import numpy as np
+
 from ..kernels import Kernel
 
 PEGP = libpysal.examples.get_path
@@ -17,7 +19,7 @@ class TestKernels(unittest.TestCase):
         y = np.arange(5, 0, -1)
         np.random.shuffle(x)
         np.random.shuffle(y)
-        self.coords = np.array(list(zip(x, y)))
+        self.coords = np.array(list(zip(x, y, strict=False)))
         self.n = 5
         self.fix_gauss_kern = np.array(
             [

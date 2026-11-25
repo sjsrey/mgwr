@@ -4,17 +4,18 @@ __author__ = "Taylor Oshan Tayoshan@gmail.com"
 
 import copy
 import os
-from typing import Optional
 import warnings
-import numpy as np
-from scipy.stats import t
 from itertools import combinations as combo
-from spglm.family import Gaussian, Binomial, Poisson
-from spglm.glm import GLM, GLMResults
-from spglm.iwls import iwls, _compute_betas_gwr
-from spglm.utils import cache_readonly
+
+import numpy as np
 from joblib import Parallel, delayed
-from .diagnostics import get_AIC, get_AICc, get_BIC, corr
+from scipy.stats import t
+from spglm.family import Binomial, Gaussian, Poisson
+from spglm.glm import GLM, GLMResults
+from spglm.iwls import _compute_betas_gwr, iwls
+from spglm.utils import cache_readonly
+
+from .diagnostics import corr, get_AIC, get_AICc, get_BIC
 from .kernels import Kernel
 from .summary import summaryGLM, summaryGWR, summaryMGWR, summaryModel
 
@@ -81,13 +82,15 @@ class GWR(GLM):
                     False for projected coordinates (defalut).
     hat_matrix    : boolean
                     True to store full n by n hat matrix,
-                    False to not store full hat matrix to minimize memory footprint (defalut).
+                    False to not store full hat matrix to minimize memory footprint
+                    (defalut).
 
     name_x        : list of strings
                     Names of independent variables for use in output
 
     n_jobs        : integer
-                    The number of jobs (default -1) to run in parallel. -1 means using all processors.
+                    The number of jobs (default -1) to run in parallel. -1 means using
+                    all processors.
 
 
     Attributes
@@ -145,7 +148,8 @@ class GWR(GLM):
 
     hat_matrix    : boolean
                     True to store full n by n hat matrix,
-                    False to not store full hat matrix to minimize memory footprint (defalut).
+                    False to not store full hat matrix to minimize memory footprint
+                    (defalut).
 
     n             : integer
                     number of observations
@@ -218,7 +222,7 @@ class GWR(GLM):
         y,
         X,
         bw,
-        family=Gaussian(),
+        family=Gaussian(),  # noqa: B008
         offset=None,
         sigma2_v1=True,
         kernel="bisquare",
@@ -257,7 +261,7 @@ class GWR(GLM):
     def _build_wi(self, i, bw):
 
         if bw == np.inf:
-            wi = np.ones((self.n))
+            wi = np.ones(self.n)
             return wi
 
         try:
@@ -370,7 +374,8 @@ class GWR(GLM):
 
         if pool:
             warnings.warn(
-                "The pool parameter is no longer used and will have no effect; parallelization is default and implemented using joblib instead.",
+                "The pool parameter is no longer used and will have no effect; "
+                "parallelization is default and implemented using joblib instead.",
                 RuntimeWarning,
                 stacklevel=2,
             )
@@ -385,7 +390,7 @@ class GWR(GLM):
                 delayed(self._local_fit)(i) for i in range(m)
             )
 
-            rslt_list = list(zip(*rslt))
+            rslt_list = list(zip(*rslt, strict=False))
             influ = np.array(rslt_list[0]).reshape(-1, 1)
             resid = np.array(rslt_list[1]).reshape(-1, 1)
             params = np.array(rslt_list[3])
@@ -427,7 +432,8 @@ class GWR(GLM):
                         given it must be n*1 where n is the length of coords
         fit_params    : dict
                         key-value pairs of parameters that will be passed into fit
-                        method to define estimation routine; see fit method for more details
+                        method to define estimation routine; see fit method for more
+                        details
 
         """
         if (exog_scale is None) & (exog_resid is None):
@@ -921,11 +927,13 @@ class GWRResults(GLMResults):
     @cache_readonly
     def adj_alpha(self):
         """
-        Corrected alpha (critical) values to account for multiple testing during hypothesis
+        Corrected alpha (critical) values to account for multiple testing during
+        hypothesis
         testing. Includes corrected value for 90% (.1), 95% (.05), and 99%
         (.01) confidence levels. Correction comes from:
 
-        :cite:`Silva:2016` : da Silva, A. R., & Fotheringham, A. S. (2015). The Multiple Testing Issue in
+        :cite:`Silva:2016` : da Silva, A. R., & Fotheringham, A. S. (2015). The Multiple
+        Testing Issue in
         Geographically Weighted Regression. Geographical Analysis.
 
         """
@@ -1125,9 +1133,12 @@ class GWRResults(GLMResults):
         except ImportError:
             return
 
-        # Get AICcs and associated bw from the last iteration of back-fitting and make a DataFrame
-        aiccs = pd.DataFrame(list(zip(*selector.sel_hist))[1], columns=["aicc"])
-        aiccs["bw"] = list(zip(*selector.sel_hist))[0]
+        # Get AICcs and associated bw from the last iteration of back-fitting and make a
+        # DataFrame
+        aiccs = pd.DataFrame(
+            list(zip(*selector.sel_hist, strict=False))[1], columns=["aicc"]
+        )
+        aiccs["bw"] = list(zip(*selector.sel_hist, strict=False))[0]
         # Sort DataFrame by the AICc values
         aiccs = aiccs.sort_values(by=["aicc"])
         # Calculate delta AICc
@@ -1190,12 +1201,12 @@ class GWRResults(GLMResults):
             if self.model.constant:
                 corr_mati = corr(np.cov(x[:, 1:].T, aweights=wi))
                 vifs_mat[i,] = np.diag(
-                    np.linalg.solve(corr_mati, np.identity((nvar - 1)))
+                    np.linalg.solve(corr_mati, np.identity(nvar - 1))
                 )
 
             else:
                 corr_mati = corr(np.cov(x.T, aweights=wi))
-                vifs_mat[i,] = np.diag(np.linalg.solve(corr_mati, np.identity((nvar))))
+                vifs_mat[i,] = np.diag(np.linalg.solve(corr_mati, np.identity(nvar)))
 
             xw = x * wi.reshape((nrow, 1))
             sxw = np.sqrt(np.sum(xw**2, axis=0))
@@ -1292,7 +1303,7 @@ class GWRResults(GLMResults):
             predictions = np.sum(P * self.params, axis=1).reshape((-1, 1))
         return predictions
 
-    def summary(self, as_str: bool = False) -> Optional[str]:
+    def summary(self, as_str: bool = False) -> str | None:
         """
         Print out GWR summary
 
@@ -1317,7 +1328,7 @@ class GWRResults(GLMResults):
         return None
 
 
-class GWRResultsLite(object):
+class GWRResultsLite:
     """
     Lightweight GWR that computes the minimum diagnostics needed for bandwidth
     selection.
@@ -1526,7 +1537,8 @@ class MGWR(GWR):
                     Names of independent variables for use in output
 
     n_jobs        : integer
-                    The number of jobs (default 1) to run in parallel. -1 means using all processors.
+                    The number of jobs (default 1) to run in parallel. -1 means using
+                    all processors.
 
     Examples
     --------
@@ -1548,7 +1560,9 @@ class MGWR(GWR):
     >>> selector = Sel_BW(coords, y, X, multi=True)
     >>> selector.search(multi_bw_min=[2])
     [92.0, 101.0, 136.0, 158.0]
-    >>> model = MGWR(coords, y, X, selector, fixed=False, kernel='bisquare', sigma2_v1=True)
+    >>> model = MGWR(
+    ...     coords, y, X, selector, fixed=False, kernel='bisquare', sigma2_v1=True
+    ... )
     >>> results = model.fit()
     >>> print(results.params.shape)
     (159, 4)
@@ -1686,7 +1700,8 @@ class MGWR(GWR):
 
         if pool:
             warnings.warn(
-                "The pool parameter is no longer used and will have no effect; parallelization is default and implemented using joblib instead.",
+                "The pool parameter is no longer used and will have no effect; "
+                "parallelization is default and implemented using joblib instead.",
                 RuntimeWarning,
                 stacklevel=2,
             )
@@ -1706,7 +1721,7 @@ class MGWR(GWR):
             desc="Inference",
         )
 
-        rslt_list = list(zip(*rslt))
+        rslt_list = list(zip(*rslt, strict=False))
         ENP_j = np.sum(np.array(rslt_list[0]), axis=0)
         CCT = np.sum(np.array(rslt_list[1]), axis=0)
 
@@ -1801,7 +1816,8 @@ class MGWRResults(GWRResults):
                           n*n, model hat matrix (if MGWR(hat_matrix=True))
 
     R                   : array
-                          n*n*k, covariate-specific hat matrices (if MGWR(hat_matrix=True))
+                          n*n*k, covariate-specific hat matrices (if
+                          MGWR(hat_matrix=True))
 
     CCT                 : array
                           n*k, scaled variance-covariance matrix
@@ -1869,7 +1885,8 @@ class MGWRResults(GWRResults):
                           n*n, model hat matrix (if MGWR(hat_matrix=True))
 
     R                   : array
-                          n*n*k, covariate-specific hat matrices (if MGWR(hat_matrix=True))
+                          n*n*k, covariate-specific hat matrices (if
+                          MGWR(hat_matrix=True))
 
     CCT                 : array
                           n*k, scaled variance-covariance matrix
@@ -1977,11 +1994,13 @@ class MGWRResults(GWRResults):
     @cache_readonly
     def adj_alpha_j(self):
         """
-        Corrected alpha (critical) values to account for multiple testing during hypothesis
+        Corrected alpha (critical) values to account for multiple testing during
+        hypothesis
         testing. Includes corrected value for 90% (.1), 95% (.05), and 99%
         (.01) confidence levels. Correction comes from:
 
-        :cite:`Silva:2016` : da Silva, A. R., & Fotheringham, A. S. (2015). The Multiple Testing Issue in
+        :cite:`Silva:2016` : da Silva, A. R., & Fotheringham, A. S. (2015). The Multiple
+        Testing Issue in
         Geographically Weighted Regression. Geographical Analysis.
 
         """
@@ -2096,11 +2115,13 @@ class MGWRResults(GWRResults):
             return
 
         for j in range(self.k):
-            # Get AICcs and associated bw from the last iteration of back-fitting and make a DataFrame
+            # Get AICcs and associated bw from the last iteration of back-fitting and
+            # make a DataFrame
             aiccs = pd.DataFrame(
-                list(zip(*selector.sel_hist[-self.k + j]))[1], columns=["aicc"]
+                list(zip(*selector.sel_hist[-self.k + j], strict=False))[1],
+                columns=["aicc"],
             )
-            aiccs["bw"] = list(zip(*selector.sel_hist[-self.k + j]))[0]
+            aiccs["bw"] = list(zip(*selector.sel_hist[-self.k + j], strict=False))[0]
             # Sort DataFrame by the AICc values
             aiccs = aiccs.sort_values(by=["aicc"])
             # Calculate delta AICc
@@ -2138,7 +2159,7 @@ class MGWRResults(GWRResults):
         vdp_pi = np.ndarray((nrow, nvar, nvar))
 
         for i in range(nrow):
-            xw = np.zeros((x.shape))
+            xw = np.zeros(x.shape)
             for j in range(nvar):
                 wi = w[j][i]
                 sw = np.sum(wi)
@@ -2224,7 +2245,7 @@ class MGWRResults(GWRResults):
         p_vals = np.sum(np.array(SDs) > init_sd, axis=0) / float(n_iters)
         return p_vals
 
-    def summary(self, as_str: bool = False) -> Optional[str]:
+    def summary(self, as_str: bool = False) -> str | None:
         """
         Print out MGWR summary
 

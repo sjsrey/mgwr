@@ -2,8 +2,9 @@
 
 __author__ = "Taylor Oshan"
 
-import numpy as np
 from copy import deepcopy
+
+import numpy as np
 
 
 def golden_section(
@@ -14,7 +15,8 @@ def golden_section(
 
     Method: p212, 9.6.4
 
-    :cite:`fotheringham_geographically_2002`: Fotheringham, A. S., Brunsdon, C., & Charlton, M. (2002).
+    :cite:`fotheringham_geographically_2002`: Fotheringham, A. S., Brunsdon, C., &
+    Charlton, M. (2002).
     Geographically weighted regression: the analysis of spatially varying relationships.
 
     Parameters
@@ -68,7 +70,7 @@ def golden_section(
                     "Bandwidth: ",
                     np.round(b, 2),
                     ", score: ",
-                    "{0:.2f}".format(score_b[0]),
+                    f"{score_b[0]:.2f}",
                 )
 
         if d in cache:
@@ -81,7 +83,7 @@ def golden_section(
                     "Bandwidth: ",
                     np.round(d, 2),
                     ", score: ",
-                    "{0:.2f}".format(score_d[0]),
+                    f"{score_d[0]:.2f}",
                 )
 
         if score_b <= score_d:
@@ -115,7 +117,7 @@ def golden_section(
             opt_val = np.inf
 
         if verbose:
-            print("Bandwidth: ", np.inf, ", score: ", "{0:.2f}".format(score_ols[0]))
+            print("Bandwidth: ", np.inf, ", score: ", f"{score_ols[0]:.2f}")
 
     return opt_val, opt_score, output
 
@@ -162,7 +164,7 @@ def equal_interval(
     score_a = function(a)
     if verbose:
         print(score_a)
-        print("Bandwidth:", a, ", score:", "{0:.2f}".format(score_a[0]))
+        print("Bandwidth:", a, ", score:", f"{score_a[0]:.2f}")
 
     output.append((a, score_a))
 
@@ -172,7 +174,7 @@ def equal_interval(
     while b < c:
         score_b = function(b)
         if verbose:
-            print("Bandwidth:", b, ", score:", "{0:.2f}".format(score_b[0]))
+            print("Bandwidth:", b, ", score:", f"{score_b[0]:.2f}")
         output.append((b, score_b))
 
         if score_b < opt_score:
@@ -182,7 +184,7 @@ def equal_interval(
 
     score_c = function(c)
     if verbose:
-        print("Bandwidth:", c, ", score:", "{0:.2f}".format(score_c[0]))
+        print("Bandwidth:", c, ", score:", f"{score_c[0]:.2f}")
 
     output.append((c, score_c))
 
@@ -199,7 +201,7 @@ def multi_bw(
     X,
     n,
     k,
-    family,
+    family,  # noqa: ARG001 -- kept for API compatibility
     tol,
     max_iter,
     rss_score,
@@ -253,7 +255,8 @@ def multi_bw(
             bw_class = bw_func(temp_y, temp_X)
 
             if bw_stable_counter >= bws_same_times:
-                # If in backfitting, all bws not changing in bws_same_times (default 5) iterations
+                # If in backfitting, all bws not changing in bws_same_times (default 5)
+                # iterations
                 bw = bws[j]
             else:
                 bw = sel_func(bw_class, multi_bw_min[j], multi_bw_max[j])
